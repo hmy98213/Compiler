@@ -17,6 +17,7 @@ struct var_node{
 };
 
 struct func_node{
+    int defined;
     int return_type;
     struct struct_node* return_struct_type;
     char* func_name;
@@ -172,11 +173,30 @@ void insert_Tstruct(char* name){
     stru=tmp;
 }
 
-void insert_Tfunc(char* name){
+void insert_Tfunc(char* name,int defined){
     struct func_node* tmp=(struct func_node*)malloc(sizeof(struct func_node));
     tmp->func_name=name;
+    tmp->defined=defined;
     func->nxt=tmp;
     func=tmp;
+}
+void delete_Tfunc(char* name){
+    struct func_node* p=Tfunc;
+    while(p!=NULL && strcmp(p->nxt->func_name,name)!=0){
+        p=p->nxt;
+    }
+    p->nxt=p->nxt->nxt;
+}
+int check_Tfunc(){
+    struct func_node* p=Tfunc;
+    int flag=1;
+    while(p!=NULL){
+        if(!p->defined && p->func_name!=NULL) {
+            printf("Error type 18 Function \"%s\" declared but not defined.\n",p->func_name);
+        }
+        p=p->nxt;
+    }
+    return flag;
 }
 
 void insert_func_return(char* name, int return_type, struct struct_node* return_struct_type){

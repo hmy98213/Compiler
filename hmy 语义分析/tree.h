@@ -32,7 +32,6 @@ struct treenode* new_node(char* type, int lineno, char* text){
 
 struct treenode* new_tree(struct treenode* n[],int t_num,char* type){
 	struct treenode* node =(struct treenode*)malloc(sizeof(struct treenode));
-	struct treenode* ori[100];
 	node->chd=n[0];
 	node->bro=NULL;
 	for (int i = 0; i < t_num-1; ++i){

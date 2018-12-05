@@ -1,4 +1,4 @@
-int add(int c,int d);
+int add(int c,float d);
 int main()
 {
 	int i;
@@ -6,10 +6,9 @@ int main()
 	{
 		int j;	
 	}
-	return 0;
 }
 
 int add(int a,int b)
 {
 	return a+b;
-} 
+}

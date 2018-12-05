@@ -49,7 +49,7 @@
 			id=id->chd;
 		}
 		if(find_struct_var(id->content,name)!=NULL){
-			printf("Eorror type 15 at Line %d: Redefined variable \"%s\" in struct \"%s\". \n",id->lineno, id->content,name);
+			printf("Error type 15 at Line %d: Redefined variable \"%s\" in struct \"%s\". \n",id->lineno, id->content,name);
 		}
 		else{
 			int type=-1;
@@ -105,24 +105,31 @@
 			}
 		}
 	}
-	void match_param(struct treenode* param, struct func_node* fnode){
+	int match_param(struct treenode* param, struct func_node* fnode, int pt){
 		int v=1;
 		struct treenode* t=param->chd;
 		while(t->bro!=NULL){
 			v+=1;
 			t=t->bro->bro->chd;
 		}
+		//printf("%d\n",fnode->param_num);
 		if(fnode->param_num!=v){
-			printf("Error type 9 at line %d: Params in function \"%s\" can't match.\n",param->lineno, fnode->func_name);
-
+			if(pt){
+				printf("Error type 9 at line %d: Params in function \"%s\" can't match.\n",param->lineno, fnode->func_name);
+			}
+			return 0;
 		}
 		else{
 			struct var_node* p=fnode->begin_param;
 			struct treenode* a=param;
 			while(1){
 				struct treenode* exp=a->chd;
+				//printf("%d %d\n",exp->_type,p->type);
 				if(exp->_type!=p->type ||exp->st!=p->struct_type ||exp->dim!=p->dim){
-					printf("Error type 9 at line %d: params in function \"%s\" can't match.\n",exp->lineno, fnode->func_name);
+					if(pt){
+						printf("Error type 9 at line %d: params in function \"%s\" can't match.\n",exp->lineno, fnode->func_name);
+					}
+					return 0;
 				}
 				if(exp->bro==NULL){
 					break;
@@ -133,6 +140,7 @@
 				}
 			}
 		}
+		return 1;
 	}
 %}
 
@@ -169,10 +177,10 @@
 
 %type <node> Program ExtDefList ExtDef ExtDecList
 %type <node> Specifier StructSpecifier OptTag Tag 
-%type <node> VarDec FunDec VarList ParamDec
+%type <node> VarDec FunDec Fun_dec_Dec VarList ParamDec
 %type <node> CompSt StmtList Stmt
 %type <node> DefList Def DecList Dec
-%type <node> FuncBegin CompStBegin StructSpecifierBegin
+%type <node> FuncBegin Func_dec_Begin CompStBegin StructSpecifierBegin
 %type <node> Exp Args
 
 %nonassoc LOWER_THAN_ELSE
@@ -188,11 +196,10 @@
 
 %%
 Program:
-				ExtDefList {
-					if(1){
-					printf("Program (%d)\n",$1->lineno);
-					tree_display($1,1);
-					}
+				ExtDefList {					
+					//printf("Program (%d)\n",$1->lineno);
+					//tree_display($1,1);
+					check_Tfunc();
 				}
 				;
 ExtDefList:
@@ -217,11 +224,23 @@ ExtDef:
 					struct treenode* n[]={$1,$2};
     				$$=new_tree(n,2,"ExtDef");
 				}
+				|Func_dec_Begin SEMI {
+					struct treenode* n[]={$1,$2};
+					$$=new_tree(n,2,"ExtDef");
+				}
 				;
 FuncBegin:
 				Specifier FunDec {
 					struct treenode* n[]={$1,$2};
     				$$=new_tree(n,2,"FuncBegin");
+					insert_func_return($2->chd->content, $1->_type, $2->st);
+					func_name=$2->chd->content;
+				}
+				;
+Func_dec_Begin:
+				Specifier Fun_dec_Dec {
+					struct treenode* n[]={$1,$2};
+    				$$=new_tree(n,2,"Func_dec_Begin");
 					insert_func_return($2->chd->content, $1->_type, $2->st);
 					func_name=$2->chd->content;
 				}
@@ -314,11 +333,24 @@ FunDec:
 				ID LP VarList RP {
 					struct treenode* n[]={$1,$2,$3,$4};
     				$$=new_tree(n,4,"FunDec");
-					if(find_in_Tfunc($1->content)!=NULL){
+					struct func_node *tmp = find_in_Tfunc($1->content);
+					if(tmp!=NULL && tmp->defined){
 						printf("Error type 4 at line %d: Redefined function \"%s\".\n",$1->lineno, $1->content);
 					}
+					else if(tmp!=NULL && !tmp->defined){
+						//printf("OK\n");
+						//printf("--%d\n",match_param($3,tmp,0));
+						if(!match_param($3,tmp,0)){
+							printf("Error type 19 at line %d: Conflict declared function \"%s\".\n",$1->lineno, $1->content);
+							//printf("!!!Oops!!!");
+							//printf("%s %d",tmp->func_name,tmp->defined);
+						}
+						delete_Tfunc($1->content);
+						insert_Tfunc($1->content,1);
+						login_param_vars($3,$1->content);
+					}
 					else{
-						insert_Tfunc($1->content);
+						insert_Tfunc($1->content,1);
 						login_param_vars($3,$1->content);
 					}
 
@@ -326,11 +358,43 @@ FunDec:
 				|ID LP RP {
 					struct treenode* n[]={$1,$2,$3};
     				$$=new_tree(n,3,"FunDec");
-					if(find_in_Tfunc($1->content)!=NULL){
+					struct func_node *tmp = find_in_Tfunc($1->content);
+					if(tmp!=NULL && tmp->defined){
+						printf("Error type 4 at line %d: Redefined function \"%s\".\n",$1->lineno, $1->content);
+					}
+					else if(tmp!=NULL && !tmp->defined){
+						if(!match_param($3,tmp,0)){
+							printf("Error type 19 at line %d: Conflict declared function \"%s\".\n",$1->lineno, $1->content);
+						}
+					}
+					else{
+						insert_Tfunc($1->content,1);
+					}
+				}
+				;
+Fun_dec_Dec:
+				ID LP VarList RP {
+					struct treenode* n[]={$1,$2,$3,$4};
+    				$$=new_tree(n,4,"Fun_dec_Dec");
+					struct func_node *tmp = find_in_Tfunc($1->content);
+					if(tmp!=NULL && tmp->defined){
 						printf("Error type 4 at line %d: Redefined function \"%s\".\n",$1->lineno, $1->content);
 					}
 					else{
-						insert_Tfunc($1->content);
+						insert_Tfunc($1->content,0);
+						login_param_vars($3,$1->content);
+					}
+
+				}
+				|ID LP RP {
+					struct treenode* n[]={$1,$2,$3};
+    				$$=new_tree(n,3,"FunDec");
+					struct func_node *tmp = find_in_Tfunc($1->content);
+					if(tmp!=NULL && tmp->defined){
+						printf("Error type 4 at line %d: Redefined function \"%s\".\n",$1->lineno, $1->content);
+					}
+					else{
+						insert_Tfunc($1->content,0);
 					}
 				}
 				;
@@ -550,7 +614,7 @@ Exp:
 							printf("Error type 2 at line %d: Undefined function \"%s\".\n",$1->lineno,$1->content);
 						}
 						else{
-							match_param($3,f);
+							match_param($3,f,1);
 						}
 					}
 				}
