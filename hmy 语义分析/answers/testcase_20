@@ -1,0 +1,8 @@
+未选做：
+Error type 3 at Line 32: Redefined variable "j".
+Error type 7 at Line 34: Type mismatched for operands.
+
+已选做：
+Error type 5 at Line 33: Type mismatched for assignment.
+Error type 9 at Line 36: Function "abs(int)" is not applicable for arguments "(float)".
+Error type 13 at Line 37: Illegal use of ".".

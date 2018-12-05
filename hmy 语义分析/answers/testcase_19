@@ -1,0 +1,10 @@
+未选做：
+Error type B at Line 5: Miss "(".
+Error type B at Line 6: Miss "(".
+Error type B at Line 8: Miss "(".
+
+已选做：
+Error type 19 at Line 8: Inconsistent declaration of function "abs".
+Error type 17 at Line 12: Undefined structure "Complex2".
+Error type 19 at Line 16: Inconsistent declaration of function "abs2".
+Error type 9 at Line 27: Function "abs2(int)" is not applicable for arguments "()".

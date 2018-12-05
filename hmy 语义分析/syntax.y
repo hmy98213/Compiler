@@ -554,7 +554,7 @@ Exp:
 				|Exp MINUS Exp {
 					struct treenode* n[]={$1,$2,$3};
     				$$=new_tree(n,3,"Exp");
-					printf("Exp: %s %d\n",$1->type,$1->lineno);
+					//printf("Exp: %s %d\n",$1->type,$1->lineno);
 
 					if($1->st==NULL && $3->st==NULL && $1->_type==$3->_type && $1->dim==$3->dim){
 						$$->_type=$1->_type;

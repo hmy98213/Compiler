@@ -1,0 +1,3 @@
+Error type 9 at Line 20: Function "abs(int)" is not applicable for arguments "(int, int)".
+Error type 9 at Line 22: Function "abs2(int, int)" is not applicable for arguments "(int)".
+Error type 9 at Line 24: Function "abs(int)" is not applicable for arguments "(int[])".

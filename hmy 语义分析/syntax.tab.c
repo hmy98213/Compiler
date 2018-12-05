@@ -2035,7 +2035,7 @@ yyreduce:
     {
 					struct treenode* n[]={(yyvsp[-2].node),(yyvsp[-1].node),(yyvsp[0].node)};
     				(yyval.node)=new_tree(n,3,"Exp");
-					printf("Exp: %s %d\n",(yyvsp[-2].node)->type,(yyvsp[-2].node)->lineno);
+					//printf("Exp: %s %d\n",$1->type,$1->lineno);
 
 					if((yyvsp[-2].node)->st==NULL && (yyvsp[0].node)->st==NULL && (yyvsp[-2].node)->_type==(yyvsp[0].node)->_type && (yyvsp[-2].node)->dim==(yyvsp[0].node)->dim){
 						(yyval.node)->_type=(yyvsp[-2].node)->_type;
